@@ -1,2 +1,5 @@
-lib/
 foo/
+lib/nusmv
+lib/MiniSat
+lib/cudd-2.4.1.1
+lib/zchaff
