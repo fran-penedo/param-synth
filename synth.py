@@ -373,8 +373,8 @@ class PWASystem(object):
                     return True
             else:
                 smt = dreal_connect_smt(Xl1, Pl1, Xl2, self.n)
-                if l1 == "10" and l2 == "10":
-                    print smt
+                #if l1 == "10" and l2 == "10":
+                #    print smt
                 if dreal_check_sat(smt):
                     return True
 
@@ -440,13 +440,14 @@ def dreal_connect_smt(Xl1, Pl1, Xl2, n, PExcl=[]):
 
     for eq in Xl2:
         # Slack so the strict inequality is enforced
-        print >>out, "(assert (< 0.01 (+ %f %s)))" % \
+        print >>out, "(assert (<= 0.01 (+ %f %s)))" % \
             (eq[0], dreal_linear(eq, "xn"))
 
     for i, eq in enumerate(Pl1):
         print >>out, "(assert (%s 0 (+ %f %s)))" % \
             ("=" if i in Pl1.lin_set else "<=", eq[0], dreal_linear(eq, "p"))
 
+    # This should be wrong
     for i, eq in enumerate(PExcl):
         if i not in PExcl.lin_set:
             print >>out, "(assert (> 0 (+ %f %s)))" % \
@@ -737,7 +738,7 @@ def synthesize(ts, depth=-1):
 
 
 def _synthesize(t, path, depth, memo):
-    print len(memo)
+    #print len(memo)
     if any((t.isblocking(q) for q in t.init)) or not t.isfeasible():
         return [], False
     elif depth != 0:
