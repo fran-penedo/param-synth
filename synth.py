@@ -161,6 +161,11 @@ def pempty(m):
     return lp.status == cdd.LPStatusType.INCONSISTENT
 
 
+def pdiff(a, b):
+    if isinstance(b, CDDMatrixUnion):
+        raise NotImplementedError()
+    return pinters(a, CDDMatrixUnion([CDDMatrix(smul(-1, v)) for v in b]))
+
 def pinters(a, b):
     if isinstance(b, CDDMatrixUnion):
         if isinstance(a, CDDMatrixUnion):
@@ -362,6 +367,22 @@ class PWASystem(object):
             self.eqs[l1].pset = pinters(self.eqs[l1].pset,
                                         punderset(Xl1, Xl2))
 
+    def disconnect_dreal(self, l1, l2):
+        Xl1 = self.eqs[l1].dom
+        Xl2 = self.eqs[l2].dom
+        if l1 == l2:
+            #todo
+            trans = [CDDMatrix([[np.array(h).dot(v)] +
+                                list(- np.array(h).dot(reshape_x(v)))
+                                for v in vrep_pts(Xl1)])
+                     for h in sample_h(Xl1.col_size - 1)]
+            ps = [pinters(self.eqs[l1].pset, t) for t in trans]
+            self.eqs[l1].pset = max([(p, volume(p)) for p in ps],
+                                    key=lambda pair: pair[1])[0]
+        else:
+            self.eqs[l1].pset = pdiff(self.eqs[l1].pset,
+                                        enabling_set(Xl1, Xl2))
+
     def connected_dreal(self, l1, l2):
         if l1 == PWASystem.OUT:
             return False
@@ -401,12 +422,10 @@ def enabling_set(xset1, xset2):
 
 def dreal_find_p(smt):
     check, out = _dreal_check_sat(smt, verbose=True)
-    print check
-    print out
     if check:
         r = re.compile("p([0-9]+) : \[ ENTIRE \] = \[(%s), (%s)\]" % (FP_REGEXP, FP_REGEXP))
-        p_tuples = sorted([(int(i), (float(b) - float(a)) / 2)
-                           for i, a, b in r.findall(out[1:])])
+        p_tuples = sorted([(int(i), (float(a) + float(b)) / 2)
+                           for i, a, b in r.findall(out)])
         return zip(*p_tuples)[1]
     else:
         return None
