@@ -390,10 +390,9 @@ def dreal_find_p(smt):
     print check
     print out
     if check:
-        start = out.rfind("SAT with the following box")
-        r = re.compile("p([0-9]+) : \[(%s), (%s)\]" % (FP_REGEXP, FP_REGEXP))
+        r = re.compile("p([0-9]+) : \[ ENTIRE \] = \[(%s), (%s)\]" % (FP_REGEXP, FP_REGEXP))
         p_tuples = sorted([(int(i), (float(b) - float(a)) / 2)
-                           for i, a, b in r.findall(out[start:])])
+                           for i, a, b in r.findall(out[1:])])
         return zip(*p_tuples)[1]
     else:
         return None
@@ -402,19 +401,21 @@ def dreal_check_sat(smt):
     return _dreal_check_sat(smt)[0]
 
 def _dreal_check_sat(smt, verbose=False):
-    t = tempfile.TemporaryFile()
+    t = tempfile.NamedTemporaryFile(suffix=".smt2", delete=False)
     t.write(smt)
-    t.seek(0)
+    t.close()
     process = ["lib/dReal/bin/dReal"]
     if verbose:
-        process.append("-verbose")
-    ps = Popen(process, stdin=t, stdout=PIPE, stderr=PIPE,
+        process.append("--model")
+    process.append(t.name)
+    ps = Popen(process, stdout=PIPE, stderr=PIPE,
                env=dict(os.environ, LD_LIBRARY_PATH="lib/dReal/lib"))
     out, err = ps.communicate()
-    if out.startswith("sat"):
-        return True, err
-    elif out.startswith("unsat"):
-        return False, err
+    outlines = out.splitlines()
+    if outlines[0].startswith("delta-sat") or outlines[-1].startswith("delta-sat"):
+        return True, out
+    elif outlines[0].startswith("unsat") or outlines[-1].startswith("unsat"):
+        return False, out
     else:
         print smt
         print out
