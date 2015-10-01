@@ -151,7 +151,7 @@ def dreal_connect_smt_test():
                     [1, 1, 0, 0, 1, 0, 1], [1, 1, 0, 0, 1, 1, 1]], False)
     Xl2 = CDDMatrix([[1, 1, 0], [1, 1, 1], [1, 2, 0], [1, 2, 1]], False)
 
-    print dreal_connect_smt(Xl1, Pl1, Xl2, 2)
+    print dreal_connect_smt(Xl1, Pl1, Xl2)
 
 
 def dreal_find_p_test():
@@ -160,7 +160,7 @@ def dreal_find_p_test():
                     [1, 1, 0, 0, 1, 0, 1], [1, 1, 0, 0, 1, 1, 1]], False)
     Xl2 = CDDMatrix([[1, 1, 0], [1, 1, 1], [1, 2, 0], [1, 2, 1]], False)
 
-    smt = dreal_connect_smt(Xl1, Pl1, Xl2, 2)
+    smt = dreal_connect_smt(Xl1, Pl1, Xl2)
     p = dreal_find_p(smt)
     print p
 
