@@ -15,6 +15,7 @@ from subprocess import Popen, PIPE
 import copy
 import re
 import tempfile
+import os
 
 
 class _CDDMatrix(object):
@@ -404,10 +405,11 @@ def _dreal_check_sat(smt, verbose=False):
     t = tempfile.TemporaryFile()
     t.write(smt)
     t.seek(0)
-    process = ["lib/dreal/bin/dReal"]
+    process = ["lib/dReal/bin/dReal"]
     if verbose:
         process.append("-verbose")
-    ps = Popen(process, stdin=t, stdout=PIPE, stderr=PIPE)
+    ps = Popen(process, stdin=t, stdout=PIPE, stderr=PIPE,
+               env=dict(os.environ, LD_LIBRARY_PATH="lib/dReal/lib"))
     out, err = ps.communicate()
     if out.startswith("sat"):
         return True, err
