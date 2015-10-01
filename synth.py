@@ -367,22 +367,6 @@ class PWASystem(object):
             self.eqs[l1].pset = pinters(self.eqs[l1].pset,
                                         punderset(Xl1, Xl2))
 
-    def disconnect_dreal(self, l1, l2):
-        Xl1 = self.eqs[l1].dom
-        Xl2 = self.eqs[l2].dom
-        if l1 == l2:
-            #todo
-            trans = [CDDMatrix([[np.array(h).dot(v)] +
-                                list(- np.array(h).dot(reshape_x(v)))
-                                for v in vrep_pts(Xl1)])
-                     for h in sample_h(Xl1.col_size - 1)]
-            ps = [pinters(self.eqs[l1].pset, t) for t in trans]
-            self.eqs[l1].pset = max([(p, volume(p)) for p in ps],
-                                    key=lambda pair: pair[1])[0]
-        else:
-            self.eqs[l1].pset = pdiff(self.eqs[l1].pset,
-                                        enabling_set(Xl1, Xl2))
-
     def connected_dreal(self, l1, l2):
         if l1 == PWASystem.OUT:
             return False
@@ -405,20 +389,6 @@ class PWASystem(object):
     connected = connected_dreal
 
 FP_REGEXP = "[+-]? *(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?"
-
-def enabling_set(xset1, xset2):
-    filled = False
-    pset = CDDMatrix([], False)
-
-    while not filled:
-        p = dreal_find_p(dreal_connect_smt(xset1, [], xset2, pset, 0.1))
-        if p is None:
-            filled = True
-        else:
-            pset.extend(CDDMatrix(p, False))
-            pset.canonicalize()
-
-    return pset
 
 def dreal_find_p(smt):
     check, out = _dreal_check_sat(smt, verbose=True)
